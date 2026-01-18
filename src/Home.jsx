@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 function Home() {
@@ -8,38 +8,49 @@ function Home() {
   const [amount, setAmount] = useState("");
   const [expenses, setExpenses] = useState([]);
 
-  // 🔥 FORCE LOGOUT ON REFRESH / TAB CLOSE
+  const tableContainerRef = useRef(null); // 🔹 Scrollable container ref
+
+  // Load expenses from sessionStorage
+  useEffect(() => {
+    const savedExpenses = sessionStorage.getItem("expenses");
+    if (savedExpenses) setExpenses(JSON.parse(savedExpenses));
+  }, []);
+
+  // Save expenses & scroll to bottom
+  useEffect(() => {
+    sessionStorage.setItem("expenses", JSON.stringify(expenses));
+
+    // Scroll container to bottom
+    if (tableContainerRef.current) {
+      tableContainerRef.current.scrollTop = tableContainerRef.current.scrollHeight;
+    }
+  }, [expenses]);
+
+  // FORCE LOGOUT ON REFRESH / TAB CLOSE
   useEffect(() => {
     const handleRefresh = () => {
       sessionStorage.removeItem("user");
+      sessionStorage.removeItem("expenses"); // optional
     };
-
     window.addEventListener("beforeunload", handleRefresh);
-
-    return () => {
-      window.removeEventListener("beforeunload", handleRefresh);
-    };
+    return () => window.removeEventListener("beforeunload", handleRefresh);
   }, []);
 
   const addExpense = () => {
     if (!amount) return;
-
     setExpenses([...expenses, { category, amount: Number(amount) }]);
     setAmount("");
   };
 
-  // ✅ Manual logout
   const logout = () => {
     sessionStorage.removeItem("user");
+    sessionStorage.removeItem("expenses");
     window.location.href = "/";
   };
 
   const total = expenses.reduce((sum, e) => sum + e.amount, 0);
-
   const categoryTotal = (cat) =>
-    expenses
-      .filter((e) => e.category === cat)
-      .reduce((sum, e) => sum + e.amount, 0);
+    expenses.filter((e) => e.category === cat).reduce((sum, e) => sum + e.amount, 0);
 
   return (
     <div className="container py-5">
@@ -87,10 +98,14 @@ function Home() {
         {/* Expense List */}
         <div className="col-md-8">
           <div className="card shadow-sm mb-4">
-            <div className="card-body">
+            <div
+              className="card-body"
+              style={{ maxHeight: "400px", overflowY: "auto" }}
+              ref={tableContainerRef} // 🔹 Scroll container
+            >
               <h5 className="fw-semibold mb-3">Expenses List</h5>
 
-              <table className="table table-bordered">
+              <table className="table table-bordered mb-0">
                 <thead className="table-light">
                   <tr>
                     <th>Category</th>
@@ -108,7 +123,7 @@ function Home() {
               </table>
 
               {expenses.length === 0 && (
-                <p className="text-muted text-center">
+                <p className="text-muted text-center mt-3">
                   No expenses added yet
                 </p>
               )}
