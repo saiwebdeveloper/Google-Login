@@ -1,13 +1,11 @@
-import { useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
-import jwtDecode from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 
 function Login() {
   const navigate = useNavigate();
   const { executeRecaptcha } = useGoogleReCaptcha();
-  const [darkMode, setDarkMode] = useState(false); // ✅ Dark mode state
 
   const handleLoginSuccess = async (credentialResponse) => {
     if (!executeRecaptcha) {
@@ -31,27 +29,8 @@ function Login() {
   };
 
   return (
-    <div
-      className={`container vh-100 d-flex align-items-center justify-content-center ${
-        darkMode ? "bg-dark text-white" : "bg-light text-dark"
-      }`}
-    >
-      <div
-        className={`card shadow-lg p-4 ${
-          darkMode ? "bg-secondary text-white" : ""
-        }`}
-        style={{ maxWidth: "400px", width: "100%" }}
-      >
-        {/* Toggle Dark Mode Button */}
-        <div className="text-end mb-3">
-          <button
-            className={`btn btn-sm ${darkMode ? "btn-light" : "btn-dark"}`}
-            onClick={() => setDarkMode(!darkMode)}
-          >
-            {darkMode ? "Light Mode" : "Dark Mode"}
-          </button>
-        </div>
-
+    <div className="container vh-100 d-flex align-items-center justify-content-center">
+      <div className="card shadow-lg p-4" style={{ maxWidth: "400px", width: "100%" }}>
         <div className="text-center mb-4">
           <h3 className="fw-bold">Welcome Back 👋</h3>
           <p className="text-muted mb-0">Sign in to continue</p>

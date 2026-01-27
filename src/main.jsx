@@ -4,6 +4,8 @@ import { BrowserRouter } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import "bootstrap-icons/font/bootstrap-icons.css";
+import "./index.css";
 import App from "./App";
 
 ReactDOM.createRoot(document.getElementById("root")).render(

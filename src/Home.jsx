@@ -7,34 +7,31 @@ function Home() {
   const [category, setCategory] = useState("Bus");
   const [amount, setAmount] = useState("");
   const [expenses, setExpenses] = useState([]);
+  const [darkMode, setDarkMode] = useState(
+    sessionStorage.getItem("darkMode") === "true"
+  );
 
-  const tableContainerRef = useRef(null); // 🔹 Scrollable container ref
+  const tableContainerRef = useRef(null);
 
-  // Load expenses from sessionStorage
+  // Load expenses
   useEffect(() => {
     const savedExpenses = sessionStorage.getItem("expenses");
     if (savedExpenses) setExpenses(JSON.parse(savedExpenses));
   }, []);
 
-  // Save expenses & scroll to bottom
+  // Save expenses & auto-scroll
   useEffect(() => {
     sessionStorage.setItem("expenses", JSON.stringify(expenses));
-
-    // Scroll container to bottom
     if (tableContainerRef.current) {
-      tableContainerRef.current.scrollTop = tableContainerRef.current.scrollHeight;
+      tableContainerRef.current.scrollTop =
+        tableContainerRef.current.scrollHeight;
     }
   }, [expenses]);
 
-  // FORCE LOGOUT ON REFRESH / TAB CLOSE
+  // Persist theme
   useEffect(() => {
-    const handleRefresh = () => {
-      sessionStorage.removeItem("user");
-      sessionStorage.removeItem("expenses"); // optional
-    };
-    window.addEventListener("beforeunload", handleRefresh);
-    return () => window.removeEventListener("beforeunload", handleRefresh);
-  }, []);
+    sessionStorage.setItem("darkMode", darkMode);
+  }, [darkMode]);
 
   const addExpense = () => {
     if (!amount) return;
@@ -43,111 +40,140 @@ function Home() {
   };
 
   const logout = () => {
-    sessionStorage.removeItem("user");
-    sessionStorage.removeItem("expenses");
-    window.location.href = "/";
+    sessionStorage.clear();
+    navigate("/");
   };
 
   const total = expenses.reduce((sum, e) => sum + e.amount, 0);
   const categoryTotal = (cat) =>
-    expenses.filter((e) => e.category === cat).reduce((sum, e) => sum + e.amount, 0);
+    expenses
+      .filter((e) => e.category === cat)
+      .reduce((sum, e) => sum + e.amount, 0);
 
   return (
-    <div className="container py-5">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h3 className="fw-bold">📊 Monthly Expenses Tracker</h3>
-        <button className="btn btn-outline-danger btn-sm" onClick={logout}>
-          Logout
-        </button>
-      </div>
+    <div className={`min-vh-100 ${darkMode ? "dark-app" : "bg-light"}`}>
+      <div className="container py-4">
+        {/* Header */}
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <h4 className="fw-bold mb-0">📊 Monthly Expenses</h4>
 
-      <div className="row">
-        {/* Add Expense */}
-        <div className="col-md-4">
-          <div className="card shadow-sm mb-4">
-            <div className="card-body">
-              <h5 className="fw-semibold mb-3">Add Expense</h5>
+          <div className="d-flex gap-2">
+            {/* 🌙 / ☀️ Toggle */}
+            <button
+              className="btn btn-outline-secondary btn-sm"
+              onClick={() => setDarkMode(!darkMode)}
+              title={darkMode ? "Light mode" : "Dark mode"}
+            >
+              {darkMode ? "☀️" : "🌙"}
+            </button>
 
-              <select
-                className="form-select mb-3"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-              >
-                <option>Bus</option>
-                <option>Train</option>
-                <option>Movie</option>
-                <option>Food</option>
-                <option>Others</option>
-              </select>
-
-              <input
-                type="number"
-                className="form-control mb-3"
-                placeholder="Amount"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              />
-
-              <button className="btn btn-primary w-100" onClick={addExpense}>
-                Add
-              </button>
-            </div>
+            <button
+              className="btn btn-outline-danger btn-sm"
+              onClick={logout}
+            >
+              Logout
+            </button>
           </div>
         </div>
 
-        {/* Expense List */}
-        <div className="col-md-8">
-          <div className="card shadow-sm mb-4">
-            <div
-              className="card-body"
-              style={{ maxHeight: "400px", overflowY: "auto" }}
-              ref={tableContainerRef} // 🔹 Scroll container
-            >
-              <h5 className="fw-semibold mb-3">Expenses List</h5>
+        <div className="row g-3">
+          {/* Add Expense */}
+          <div className="col-12 col-md-4">
+            <div className={`card shadow-sm ${darkMode ? "dark-card" : ""}`}>
+              <div className="card-body">
+                <h6 className="fw-semibold mb-3">➕ Add Expense</h6>
 
-              <table className="table table-bordered mb-0">
-                <thead className="table-light">
-                  <tr>
-                    <th>Category</th>
-                    <th>Amount (₹)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {expenses.map((e, i) => (
-                    <tr key={i}>
-                      <td>{e.category}</td>
-                      <td>{e.amount}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                <select
+                  className={`form-select mb-3 ${
+                    darkMode ? "dark-select" : ""
+                  }`}
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                >
+                  <option>Bus</option>
+                  <option>Train</option>
+                  <option>Movie</option>
+                  <option>Food</option>
+                  <option>Others</option>
+                </select>
 
-              {expenses.length === 0 && (
-                <p className="text-muted text-center mt-3">
-                  No expenses added yet
-                </p>
-              )}
+                <input
+                  type="number"
+                  className={`form-control mb-3 ${
+                    darkMode ? "dark-input" : ""
+                  }`}
+                  placeholder="Amount"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                />
+
+                <button className="btn btn-primary w-100">
+                  Add Expense
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Summary */}
-          <div className="card shadow-sm">
-            <div className="card-body">
-              <h5 className="fw-semibold mb-3">Monthly Summary</h5>
+          {/* Expense List */}
+          <div className="col-12 col-md-8">
+            <div className={`card shadow-sm ${darkMode ? "dark-card" : ""}`}>
+              <div
+                className="card-body"
+                style={{ maxHeight: "300px", overflowY: "auto" }}
+                ref={tableContainerRef}
+              >
+                <h6 className="fw-semibold mb-3">🧾 Expenses</h6>
 
-              <ul className="list-group mb-3">
-                {["Bus", "Train", "Movie", "Food", "Others"].map((cat) => (
-                  <li
-                    key={cat}
-                    className="list-group-item d-flex justify-content-between"
-                  >
-                    {cat} <span>₹{categoryTotal(cat)}</span>
-                  </li>
-                ))}
-              </ul>
+                <table
+                  className={`table mb-0 ${
+                    darkMode ? "dark-table" : "table-bordered"
+                  }`}
+                >
+                  <thead>
+                    <tr>
+                      <th>Category</th>
+                      <th>₹</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {expenses.map((e, i) => (
+                      <tr key={i}>
+                        <td>{e.category}</td>
+                        <td>{e.amount}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
 
-              <div className="alert alert-success text-center fw-bold">
-                Total Monthly Expense: ₹{total}
+                {expenses.length === 0 && (
+                  <p className="text-center mt-3 dark-muted">
+                    No expenses yet
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Summary */}
+            <div className={`card shadow-sm mt-3 ${darkMode ? "dark-card" : ""}`}>
+              <div className="card-body">
+                <h6 className="fw-semibold mb-3">📌 Summary</h6>
+
+                <ul className="list-group mb-3">
+                  {["Bus", "Train", "Movie", "Food", "Others"].map((cat) => (
+                    <li
+                      key={cat}
+                      className={`list-group-item d-flex justify-content-between ${
+                        darkMode ? "dark-list" : ""
+                      }`}
+                    >
+                      {cat} <span>₹{categoryTotal(cat)}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="alert alert-success text-center fw-bold mb-0">
+                  Total: ₹{total}
+                </div>
               </div>
             </div>
           </div>
