@@ -16,7 +16,9 @@ function Home() {
   // Load expenses
   useEffect(() => {
     const savedExpenses = sessionStorage.getItem("expenses");
-    if (savedExpenses) setExpenses(JSON.parse(savedExpenses));
+    if (savedExpenses) {
+      setExpenses(JSON.parse(savedExpenses));
+    }
   }, []);
 
   // Save expenses & auto-scroll
@@ -33,9 +35,15 @@ function Home() {
     sessionStorage.setItem("darkMode", darkMode);
   }, [darkMode]);
 
+  // ✅ FIXED FUNCTION
   const addExpense = () => {
-    if (!amount) return;
-    setExpenses([...expenses, { category, amount: Number(amount) }]);
+    if (!amount || Number(amount) <= 0) return;
+
+    setExpenses([
+      ...expenses,
+      { category, amount: Number(amount) }
+    ]);
+
     setAmount("");
   };
 
@@ -45,6 +53,7 @@ function Home() {
   };
 
   const total = expenses.reduce((sum, e) => sum + e.amount, 0);
+
   const categoryTotal = (cat) =>
     expenses
       .filter((e) => e.category === cat)
@@ -53,16 +62,15 @@ function Home() {
   return (
     <div className={`min-vh-100 ${darkMode ? "dark-app" : "bg-light"}`}>
       <div className="container py-4">
+
         {/* Header */}
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h4 className="fw-bold mb-0">📊 Monthly Expenses</h4>
 
           <div className="d-flex gap-2">
-            {/* 🌙 / ☀️ Toggle */}
             <button
               className="btn btn-outline-secondary btn-sm"
               onClick={() => setDarkMode(!darkMode)}
-              title={darkMode ? "Light mode" : "Dark mode"}
             >
               {darkMode ? "☀️" : "🌙"}
             </button>
@@ -77,6 +85,7 @@ function Home() {
         </div>
 
         <div className="row g-3">
+
           {/* Add Expense */}
           <div className="col-12 col-md-4">
             <div className={`card shadow-sm ${darkMode ? "dark-card" : ""}`}>
@@ -84,9 +93,7 @@ function Home() {
                 <h6 className="fw-semibold mb-3">➕ Add Expense</h6>
 
                 <select
-                  className={`form-select mb-3 ${
-                    darkMode ? "dark-select" : ""
-                  }`}
+                  className={`form-select mb-3 ${darkMode ? "dark-select" : ""}`}
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
                 >
@@ -99,15 +106,18 @@ function Home() {
 
                 <input
                   type="number"
-                  className={`form-control mb-3 ${
-                    darkMode ? "dark-input" : ""
-                  }`}
+                  className={`form-control mb-3 ${darkMode ? "dark-input" : ""}`}
                   placeholder="Amount"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                 />
 
-                <button className="btn btn-primary w-100">
+                {/* ✅ FIXED BUTTON */}
+                <button
+                  className="btn btn-primary w-100"
+                  onClick={addExpense}
+                  disabled={!amount}
+                >
                   Add Expense
                 </button>
               </div>
@@ -146,7 +156,7 @@ function Home() {
                 </table>
 
                 {expenses.length === 0 && (
-                  <p className="text-center mt-3 dark-muted">
+                  <p className="text-center mt-3 text-muted">
                     No expenses yet
                   </p>
                 )}
@@ -166,7 +176,8 @@ function Home() {
                         darkMode ? "dark-list" : ""
                       }`}
                     >
-                      {cat} <span>₹{categoryTotal(cat)}</span>
+                      {cat}
+                      <span>₹{categoryTotal(cat)}</span>
                     </li>
                   ))}
                 </ul>
@@ -176,6 +187,7 @@ function Home() {
                 </div>
               </div>
             </div>
+
           </div>
         </div>
       </div>
